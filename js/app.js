@@ -101,6 +101,8 @@ async function pickCity(cities){
 function createButton(city){
   const button = document.createElement('button');
   button.textContent = `${city.name}, ${city.state}, ${city.country}`;
+  // Also set aria-label to the same value to make it accessible
+  button.setAttribute('aria-label', button.textContent);
   modal.querySelector('#city-selector > form').appendChild(button);
 
   // Wrap click event in a promise that resulves with the selected city
@@ -147,6 +149,8 @@ function loadWeatherData(){
   for(let search of savedSearches){
     const button = document.createElement('button');
     button.textContent = Object.keys(search)[0];
+    // Also set aria-label to the same value to make it accessible
+    button.setAttribute('aria-label', button.textContent);
     button.classList.add('search-history');
 
     button.addEventListener('click', e => {
@@ -161,6 +165,8 @@ function loadWeatherData(){
   if(savedSearches.length > 0){
     const clearButton = document.createElement('button');
     clearButton.textContent = "Clear Searches";
+    // Also set aria-label to the same value to make it accessible
+    clearButton.setAttribute('aria-label', clearButton.textContent);
     clearButton.classList.add('search-history');
     clearButton.classList.add('clear-button');
     clearButton.addEventListener('click', e => {

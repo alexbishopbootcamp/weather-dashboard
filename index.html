@@ -16,8 +16,8 @@
       <section id="search">
         <h2>Search for a City:</h2>
         <form>
-          <input type="text" name="city" id="city" placeholder="City Name">
-          <button type="submit">Search</button>
+          <input type="text" name="city" id="city" placeholder="City Name" aria-label="Enter city name">
+          <button aria-label="Search" type="submit">Search</button>
         </form>
       </section>
       <hr>
@@ -106,7 +106,7 @@
       <h2>Error</h2>
       <p>Template Error Message</p>
       <form method="dialog">
-        <button>OK</button>
+        <button aria-label="Dismiss error message">OK</button>
       </form>
     </div>
     <div class="hidden" id="city-selector">
