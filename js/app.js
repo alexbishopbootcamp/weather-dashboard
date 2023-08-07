@@ -1,8 +1,9 @@
+// Consts and globals
 const OPENWEATHER_APIKEY = '583be16168104e66f1bb1704b6ba0528';
 const form = document.querySelector('form');
 const modal = document.querySelector('dialog');
 
-// Load previous searched from localStorage
+// Load previous searches from localStorage
 loadWeatherData();
 
 // Listen for form submission
