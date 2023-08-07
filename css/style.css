@@ -161,6 +161,10 @@ dialog {
   font-weight: bold;
 }
 
+.card-city-name {
+  margin-right: 12px;
+}
+
 /* Mediaquery for 600px and below */
 @media screen and (max-width: 600px) {
   main {

@@ -33,13 +33,22 @@ form.addEventListener('submit', async e => {
     city = await pickCity(cities);
   }
 
-  // Get weather data for lat/long
-  const rawWeatherData = await getWeatherData(city.lat, city.lon);
+  // Get todays weather for lat/long
+  const rawTodaysWeatherData = await getTodaysWeatherData(city.lat, city.lon);
+
+  // Parse and clean up todays weather data
+  const todaysWeatherData = parseTodaysWeatherData(rawTodaysWeatherData);
+
+  // Get forecast data for lat/long
+  const rawForecastData = await getForecastData(city.lat, city.lon);
 
   // Parse and clean up weather data
-  const weatherData = parseWeatherData(rawWeatherData);
+  const weatherData = parseForecastData(rawForecastData);
 
-  // Display weather data
+  // Display todays weather data
+  displayTodaysWeatherData(todaysWeatherData);
+
+  // Display forecast data
   displayWeatherData(weatherData);
 
   // Show weather panel
@@ -48,7 +57,6 @@ form.addEventListener('submit', async e => {
   // Save weather data to history
   saveWeatherData(weatherData, city.name);
 });
-
 
 // Convert a city name to lat/long coords
 async function getCities(cityName){
@@ -61,9 +69,21 @@ async function getCities(cityName){
   return data;
 }
 
-// Get weather data for a given lat/long
-async function getWeatherData(lat, lon){
+// Get forecast data for a given lat/long
+async function getForecastData(lat, lon){
   const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_APIKEY}`)
+  
+  // Catch any HTTP errors
+  .catch(e => {
+    displayErrorMessage("An error occurred while fetching data from the OpenWeather API. Please try again later.");
+  });
+  const data = await response.json();
+  return data;
+}
+
+// Get todays weather for a given lat/long
+async function getTodaysWeatherData(lat, lon){
+  const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_APIKEY}`)
   
   // Catch any HTTP errors
   .catch(e => {
@@ -114,18 +134,27 @@ function createButton(city){
   });
 }
 
+// Display todays weather data
+function displayTodaysWeatherData(weatherData){
+  const currentCard = document.querySelector('#current');
+
+  // Fill out current weather card
+  fillWeatherCard(currentCard, weatherData); 
+}
+
 // Display weather data on the page
 function displayWeatherData(weatherData){
-  const weatherCards = document.querySelectorAll('.weather-card');
+  const forecastCards = document.querySelectorAll('.forecast-card');
 
   // Fill out all weather cards
-  weatherCards.forEach((card, index) => {
+  forecastCards.forEach((card, index) => {
     fillWeatherCard(card, weatherData[index]);
   });
 }
 
 // Fill out a weather data card using the supplied data
 function fillWeatherCard(card, data){
+  card.querySelector('.card-city-name').textContent = data.cityName;
   card.querySelector('.card-date').textContent = data.date;
   card.querySelector('img').src = `https://openweathermap.org/img/wn/${data.icon}.png`; // URL for weather icons
   card.querySelector('img').alt = data.weather;
@@ -188,7 +217,6 @@ function saveWeatherData(weatherData, cityName){
     // Pack new weather data into an object, using cityName as the key
     const newWeatherData = { [cityName]: weatherData };
 
-    console.log(newWeatherData);
 
     // Add new weather data to existing data
     savedSearches.unshift(newWeatherData);
@@ -206,14 +234,27 @@ function clearWeatherData(){
   localStorage.removeItem("weatherData");
 }
 
+// Parse todays weather data
+function parseTodaysWeatherData(rawWeatherData){
+  console.log(rawWeatherData);
+  return {
+    date: openWeatherDtToDate(rawWeatherData.dt, rawWeatherData.timezone),
+    tempMax: rawWeatherData.main.temp_max,
+    windMax: rawWeatherData.wind.speed,
+    humidityMax: rawWeatherData.main.humidity,
+    icon: rawWeatherData.weather[0].icon,
+    weather: rawWeatherData.weather[0].description,
+    cityName: rawWeatherData.name
+  };
+}
+
 // Take the list of 3-hourly forecasts and return a list of daily forecasts
-function parseWeatherData(rawWeatherData){
-  // Loop through entries, and use the hour field in the dt_txt property to detect when a new day starts
-  // This neatly avoids the problem of timezones, detecting month rollovers, etc.
-  // Example dt_txt: 2021-03-10 "2023-08-08 00:00:00"
+function parseForecastData(rawWeatherData){
+  // Loop through entries, and update the max values for each day as we go
   const forecastData = [];
+  let dayCount = '';
   let date = '';
-  let tempMax = -273.15;
+  let tempMax = -273.15; // Shouldn't get colder than this, at least I hope
   let windMax = 0;
   let humidityMax = 0;
   let icon = '';
@@ -227,10 +268,12 @@ function parseWeatherData(rawWeatherData){
       windMax: windMax,
       humidityMax: humidityMax,
       icon: icon,
-      weather: weather
+      weather: weather,
+      cityName: rawWeatherData.city.name
     });
   }
 
+  // Reset our max values
   function resetValues(){
     date = '';
     tempMax = -273.15;
@@ -240,36 +283,47 @@ function parseWeatherData(rawWeatherData){
     weather = '';
   }
 
-  for(let entry of rawWeatherData.list){
+  // Helper function to convert a timestamp to an integer value of days since year 0
+  function getDayCounter(timestamp){
+      // Set date to an integer value of days since year 0 which we can use to detect a new day
+      // We can overshoot the month and year numbers here as we are just using this to detect
+      // and increase in day
+    return timestamp.getDate() + timestamp.getMonth() * 40 + timestamp.getFullYear() * 400;
+  }
 
-    // Check if we should start a new day
-    if(entry.dt_txt.split(' ')[1] === '00:00:00'){
-      // Push previous day's max values
+  for(let entry of rawWeatherData.list){
+    // Convert our unix timestamp to a human readable date
+    date = openWeatherDtToDate(entry.dt, rawWeatherData.city.timezone);
+
+    const timestamp = new Date((entry.dt + rawWeatherData.city.timezone) * 1000);
+
+    // Initialize our date if it's empty (ie. this is the first entry)
+    if(!dayCount){
+      dayCount = getDayCounter(timestamp);
+    }
+
+    // Check for day passing
+    if(getDayCounter(timestamp) > dayCount){
+      // We have a new day, so push the old data onto our array
       pushData();
-      // Reset values for the new day
+      // Reset our values
       resetValues();
+      // Update our day counter
+      dayCount = getDayCounter(timestamp);
     }
 
     // Update our values
-    date = entry.dt_txt.split(' ')[0];
     tempMax = Math.max(tempMax, entry.main.temp_max);
     windMax = Math.max(windMax, entry.wind.speed);
     humidityMax = Math.max(humidityMax, entry.main.humidity);
 
-    // Only update weather type and icon for midday
-    if(entry.dt_txt.split(' ')[1] === '12:00:00'){
-      console.log(entry);
-      icon = entry.weather[0].icon;
+    // Only update weather type and icon for close to midday
+    if(timestamp.getHours() >= 10 && timestamp.getHours() <= 14){
+      // note: The OpenWeatherMap API returns an icon based on day/night in GMT, not local time like it should.
+      // To get around this, we will just edit the icon to always be day.
+      icon = entry.weather[0].icon.replace('n', 'd');
       weather = entry.weather[0].main;
     }
-  }
-
-  // Check if the last days data stopped before midday
-  if(!icon){
-    // Use the last entry's data
-    console.log("Using last entry's data");
-    icon = rawWeatherData.list[rawWeatherData.list.length - 1].weather[0].icon;
-    weather = rawWeatherData.list[rawWeatherData.list.length - 1].weather[0].main;
   }
 
   // Push the last day's max values which wouldn't have been pushed in the loop.
@@ -284,4 +338,10 @@ function parseWeatherData(rawWeatherData){
 function showWeatherPanel(){
   document.querySelector('#welcome-message').classList.add('hidden');
   document.querySelector('#weather-panel').classList.remove('hidden');
+}
+
+function openWeatherDtToDate(dt, timezone){
+  const timestamp = new Date((dt + timezone) * 1000);
+  // Get a human readable date string (y/m/d)
+  return timestamp.toISOString().slice(0,10).replace(/-/g,"/");
 }
