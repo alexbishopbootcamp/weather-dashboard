@@ -8,18 +8,32 @@
   <title>Document</title>
 </head>
 <body>
-  <header style="background-color: indianred">
-    Weather Dashboard
+  <header>
+    <h1>Weather Dashboard</h1>
   </header>
-  <main style="display: flex; background-color: aqua;">
-    <aside style="display: flex; flex-direction: column; width: 300px; background-color: chartreuse;">
-      <div id="search">Search</div>
-      <div id="history">History</div>
+  <main>
+    <aside>
+      <section id="search">
+        <h2>Search for a City:</h2>
+        <form>
+          <input type="text" name="city" id="city" placeholder="City Name">
+          <button type="submit">Search</button>
+        </form>
+      </section>
+      <hr>
+      <section id="history">
+        <div>
+          Template City Name
+        </div>
+        <div>
+          Template City Name
+        </div>
+      </section>
     </aside>
-    <section style="display: flex; flex-direction: column; flex-grow: 1; background-color: crimson;">
-      <div id="current">Current</div>
-      <div id="forecast">Forecast</div>
-    </section>
+    <forecast>
+      <section id="current">Current</section>
+      <section id="forecast">Forecast</section>
+    </forecast>
   </main>
   <footer></footer>
 </body>
