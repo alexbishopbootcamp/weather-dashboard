@@ -55,7 +55,7 @@ form.addEventListener('submit', async e => {
   showWeatherPanel();
 
   // Save weather data to history
-  saveWeatherData(weatherData, city.name);
+  saveWeatherData(todaysWeatherData, weatherData, city.name);
 });
 
 // Convert a city name to lat/long coords
@@ -182,8 +182,13 @@ function loadWeatherData(){
     button.setAttribute('aria-label', button.textContent);
     button.classList.add('search-history');
 
+    const unpackedData = search[Object.keys(search)[0]];
+
     button.addEventListener('click', e => {
-      displayWeatherData(search[Object.keys(search)[0]]);
+      // Pack new weather data into an object, using cityName as the key
+      // The first element is todays data, the second is the forecast data
+      displayTodaysWeatherData(unpackedData[0]);
+      displayWeatherData(unpackedData[1]);
       showWeatherPanel();
     });
 
@@ -208,14 +213,14 @@ function loadWeatherData(){
 }
 
 // Save weather data to local storage
-function saveWeatherData(weatherData, cityName){
+function saveWeatherData(todaysData, weatherData, cityName){
   // Check if local storage is available
   if(typeof(Storage) !== "undefined"){
     // Get existing weather data from local storage
     const savedSearches = JSON.parse(localStorage.getItem("weatherData")) || [];
     
     // Pack new weather data into an object, using cityName as the key
-    const newWeatherData = { [cityName]: weatherData };
+    const newWeatherData = { [cityName]: [todaysData, weatherData] };
 
 
     // Add new weather data to existing data
