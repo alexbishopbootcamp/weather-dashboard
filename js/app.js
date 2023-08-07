@@ -52,7 +52,7 @@ form.addEventListener('submit', async e => {
 
 // Convert a city name to lat/long coords
 async function getCities(cityName){
-  const response = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${OPENWEATHER_APIKEY}`)
+  const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${OPENWEATHER_APIKEY}`)
     // Catch any HTTP errors
     .catch(e => {
       displayErrorMessage("An error occurred while fetching data from the OpenWeather API. Please try again later.");
