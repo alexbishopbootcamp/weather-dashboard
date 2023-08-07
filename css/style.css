@@ -59,12 +59,15 @@ forecast {
   margin: 10px;
 }
 
-#history > div {
+.search-history {
+  display: block;
   background-color: #aeaeae;
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 10px;
   text-align: center;
+  border: none;
+  width: 100%;
 }
 
 #forecast {
@@ -97,6 +100,19 @@ forecast {
   flex-direction: column;
 }
 
+#current > div > h2 {
+  display: inline;
+}
+
+#current > div > img {
+  margin-left: 10px;
+}
+
+img {
+  width: 22px;
+  height: 22px;
+}
+
 .weather-data {
   display: flex;
   flex-direction: column;
@@ -108,11 +124,14 @@ forecast {
 }
 
 #error-message {
-  display: none;
-  color: red;
+  color: darkred;
   font-weight: bold;
   text-align: center;
   margin: 10px;
+}
+
+#error-message > * {
+  padding: 10px;
 }
 
 #city-selector {
@@ -130,4 +149,25 @@ dialog {
 
 .hidden {
   display: none;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.clear-button {
+  background-color: palegoldenrod;
+  font-weight: bold;
+}
+
+/* Mediaquery for 600px and below */
+@media screen and (max-width: 600px) {
+  main {
+    flex-direction: column;
+  }
+
+  aside {
+    min-width: 0;
+  }
 }

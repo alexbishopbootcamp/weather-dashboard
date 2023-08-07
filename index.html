@@ -31,80 +31,87 @@
       </section>
     </aside>
     <forecast>
-      <section id="current">
-        <h2>City Name (Date) ☀️</h2>
-        <div class="weather-data">
-          <span>Temp: </span>
-          <span>Wind: </span>
-          <span>Humidity: </span>
-        </div>
-      </section>
-      <section>
-        <h2>5-Day Forecast:</h2>
-        <div id="forecast">
-          <div class="forecast-card">
-            <h3>Date here</h3>
-            <span>☀️</span>
-            <div class="weather-data">
-              <span>Temp: </span>
-              <span>Wind: </span>
-              <span>Humidity: </span>
+      <div id="welcome-message">
+        <h2>Please search for a city to begin</h2>
+      </div>
+      <div id="weather-panel" class="hidden">
+        <section id="current" class="weather-card">
+          <div class="flex">
+            <h2 class="card-date">City Name (Date)</h2>
+            <img src="">
+          </div>
+          <div class="weather-data">
+            <span>Temp: </span>
+            <span>Wind: </span>
+            <span>Humidity: </span>
+          </div>
+        </section>
+        <section>
+          <h2>5-Day Forecast:</h2>
+          <div id="forecast">
+            <div class="forecast-card weather-card">
+              <h3 class="card-date">Date here</h3>
+              <img>
+              <div class="weather-data">
+                <span>Temp: </span>
+                <span>Wind: </span>
+                <span>Humidity: </span>
+              </div>
+            </div>
+            <div class="forecast-card weather-card">
+              <h3 class="card-date">Date here</h3>
+              <img>
+              <div class="weather-data">
+                <span>Temp: </span>
+                <span>Wind: </span>
+                <span>Humidity: </span>
+              </div>
+            </div>
+            <div class="forecast-card weather-card">
+              <h3 class="card-date">Date here</h3>
+              <img>
+              <div class="weather-data">
+                <span>Temp: </span>
+                <span>Wind: </span>
+                <span>Humidity: </span>
+              </div>
+            </div>
+            <div class="forecast-card weather-card">
+              <h3 class="card-date">Date here</h3>
+              <img>
+              <div class="weather-data">
+                <span>Temp: </span>
+                <span>Wind: </span>
+                <span>Humidity: </span>
+              </div>
+            </div>
+            <div class="forecast-card weather-card">
+              <h3 class="card-date">Date here</h3>
+              <img>
+              <div class="weather-data">
+                <span>Temp: </span>
+                <span>Wind: </span>
+                <span>Humidity: </span>
+              </div>
             </div>
           </div>
-          <div class="forecast-card">
-            <h3>Date here</h3>
-            <span>☀️</span>
-            <div class="weather-data">
-              <span>Temp: </span>
-              <span>Wind: </span>
-              <span>Humidity: </span>
-            </div>
-          </div>
-          <div class="forecast-card">
-            <h3>Date here</h3>
-            <span>☀️</span>
-            <div class="weather-data">
-              <span>Temp: </span>
-              <span>Wind: </span>
-              <span>Humidity: </span>
-            </div>
-          </div>
-          <div class="forecast-card">
-            <h3>Date here</h3>
-            <span>☀️</span>
-            <div class="weather-data">
-              <span>Temp: </span>
-              <span>Wind: </span>
-              <span>Humidity: </span>
-            </div>
-          </div>
-          <div class="forecast-card">
-            <h3>Date here</h3>
-            <span>☀️</span>
-            <div class="weather-data">
-              <span>Temp: </span>
-              <span>Wind: </span>
-              <span>Humidity: </span>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </forecast>
   </main>
   <footer></footer>
   <!-- Modal for selections and displaying errors -->
   <dialog>
-    <div id="error-message">
+    <div class="hidden" id="error-message">
       <h2>Error</h2>
       <p>Template Error Message</p>
       <form method="dialog">
         <button>OK</button>
       </form>
     </div>
-    <div id="city-selector">
+    <div class="hidden" id="city-selector">
       <h2>Multiple cities found, please select one:</h2>
       <form>
-        <button id="city-select-button-template" class="hidden">Adelaide</button>
       </form>
     <p></p>
   </dialog>

@@ -2,6 +2,9 @@ const OPENWEATHER_APIKEY = '583be16168104e66f1bb1704b6ba0528';
 const form = document.querySelector('form');
 const modal = document.querySelector('dialog');
 
+// Load previous searched from localStorage
+loadWeatherData();
+
 // Listen for form submission
 form.addEventListener('submit', async e => {
   // Stop default form submission
@@ -36,14 +39,16 @@ form.addEventListener('submit', async e => {
   // Parse and clean up weather data
   const weatherData = parseWeatherData(rawWeatherData);
 
-  console.log(weatherData);
-
   // Display weather data
   displayWeatherData(weatherData);
 
+  // Show weather panel
+  showWeatherPanel();
+
   // Save weather data to history
-  saveWeatherData(weatherData);
+  saveWeatherData(weatherData, city.name);
 });
+
 
 // Convert a city name to lat/long coords
 async function getCities(cityName){
@@ -69,12 +74,19 @@ async function getWeatherData(lat, lon){
 }
 
 function displayErrorMessage(message){
-  alert(message);
+  modal.querySelector('#error-message > p').textContent = message;
+  modal.querySelector('#error-message').classList.remove('hidden');
+  modal.querySelector('#city-selector').classList.add('hidden');
+  modal.showModal();
 }
 
 // Prompt the user to select a city from the list
 async function pickCity(cities){
-  // Show the modal
+  // Clear any previous search results
+  modal.querySelector('#city-selector > form').innerHTML = '';
+  // Show the modal and hide any previous errors
+  modal.querySelector('#error-message').classList.add('hidden');
+  modal.querySelector('#city-selector').classList.remove('hidden');
   modal.showModal();
   // Create a button for each city and store its promise
   const promises = cities.map(city => createButton(city));
@@ -87,10 +99,7 @@ async function pickCity(cities){
 
 // Create a button that resolves a promise on click
 function createButton(city){
-  const templateButton = modal.querySelector('#city-select-button-template');
-  const button = templateButton.cloneNode(true);
-  button.removeAttribute('id');
-  button.classList.remove('hidden');
+  const button = document.createElement('button');
   button.textContent = `${city.name}, ${city.state}, ${city.country}`;
   modal.querySelector('#city-selector > form').appendChild(button);
 
@@ -105,18 +114,90 @@ function createButton(city){
 
 // Display weather data on the page
 function displayWeatherData(weatherData){
-  // Use this URL for weather icons https://openweathermap.org/img/wn/10d@2x.png
-  console.log(weatherData);
+  const weatherCards = document.querySelectorAll('.weather-card');
+
+  // Fill out all weather cards
+  weatherCards.forEach((card, index) => {
+    fillWeatherCard(card, weatherData[index]);
+  });
+}
+
+// Fill out a weather data card using the supplied data
+function fillWeatherCard(card, data){
+  card.querySelector('.card-date').textContent = data.date;
+  card.querySelector('img').src = `https://openweathermap.org/img/wn/${data.icon}.png`; // URL for weather icons
+  card.querySelector('img').alt = data.weather;
+  // Select 1st, 2nd and 3rd span elements within card for temp, wind and humidity
+  const [temp, wind, humidity] = card.querySelectorAll('span');
+  temp.textContent = `Temp: ${data.tempMax} °C`;
+  wind.textContent = `Wind: ${data.windMax} km/h`;
+  humidity.textContent = `Humidity: ${data.humidityMax}%`;
+}
+
+// Load previous weather data from local storage
+function loadWeatherData(){
+  // Load our saved searched
+  const savedSearches = JSON.parse(localStorage.getItem("weatherData")) || [];
+
+  // Get reference to history element and clear it
+  const history = document.querySelector('#history');
+  history.innerHTML = '';
+
+  // Go through each saved search and create a button for it
+  for(let search of savedSearches){
+    const button = document.createElement('button');
+    button.textContent = Object.keys(search)[0];
+    button.classList.add('search-history');
+
+    button.addEventListener('click', e => {
+      displayWeatherData(search[Object.keys(search)[0]]);
+      showWeatherPanel();
+    });
+
+        history.appendChild(button);
+  }
+
+  // Inject a clear searches button if there are any saved searches
+  if(savedSearches.length > 0){
+    const clearButton = document.createElement('button');
+    clearButton.textContent = "Clear Searches";
+    clearButton.classList.add('search-history');
+    clearButton.classList.add('clear-button');
+    clearButton.addEventListener('click', e => {
+      clearWeatherData();
+      loadWeatherData();
+    });
+    history.appendChild(clearButton);
+  }
+  
 }
 
 // Save weather data to local storage
-function saveWeatherData(weatherData){
+function saveWeatherData(weatherData, cityName){
+  // Check if local storage is available
+  if(typeof(Storage) !== "undefined"){
+    // Get existing weather data from local storage
+    const savedSearches = JSON.parse(localStorage.getItem("weatherData")) || [];
+    
+    // Pack new weather data into an object, using cityName as the key
+    const newWeatherData = { [cityName]: weatherData };
 
+    console.log(newWeatherData);
+
+    // Add new weather data to existing data
+    savedSearches.unshift(newWeatherData);
+
+    // Save back to local storage
+    localStorage.setItem("weatherData", JSON.stringify(savedSearches));
+
+    // Reload weather data
+    loadWeatherData();
+  }
 }
 
 // Clear all weather data from local storage
 function clearWeatherData(){
-
+  localStorage.removeItem("weatherData");
 }
 
 // Take the list of 3-hourly forecasts and return a list of daily forecasts
@@ -129,17 +210,38 @@ function parseWeatherData(rawWeatherData){
   let tempMax = -273.15;
   let windMax = 0;
   let humidityMax = 0;
+  let icon = '';
+  let weather = '';
+
+  // Push data onto our forecastData array
+  function pushData(){
+    forecastData.push({
+      date: date,
+      tempMax: tempMax,
+      windMax: windMax,
+      humidityMax: humidityMax,
+      icon: icon,
+      weather: weather
+    });
+  }
+
+  function resetValues(){
+    date = '';
+    tempMax = -273.15;
+    windMax = 0;
+    humidityMax = 0;
+    icon = '';
+    weather = '';
+  }
+
   for(let entry of rawWeatherData.list){
 
     // Check if we should start a new day
     if(entry.dt_txt.split(' ')[1] === '00:00:00'){
       // Push previous day's max values
-      forecastData.push({
-        date: date,
-        tempMax: tempMax,
-        windMax: windMax,
-        humidityMax: humidityMax
-      });
+      pushData();
+      // Reset values for the new day
+      resetValues();
     }
 
     // Update our values
@@ -147,17 +249,20 @@ function parseWeatherData(rawWeatherData){
     tempMax = Math.max(tempMax, entry.main.temp_max);
     windMax = Math.max(windMax, entry.wind.speed);
     humidityMax = Math.max(humidityMax, entry.main.humidity);
+    icon = entry.weather[0].icon;
+    weather = entry.weather[0].main;
   }
 
   // Push the last day's max values which wouldn't have been pushed in the loop.
   // The full day's worth of data won't be available for the last day due to the API only
   // returning 40 entries (a full week would be 5 days * 8 3-hour chunks = 48 entries), but that's fine.
-  forecastData.push({
-    date: date,
-    tempMax: tempMax,
-    windMax: windMax,
-    humidityMax: humidityMax
-  });
+  pushData();
 
   return forecastData;
+}
+
+// Hide welcome message and show the main weather panel
+function showWeatherPanel(){
+  document.querySelector('#welcome-message').classList.add('hidden');
+  document.querySelector('#weather-panel').classList.remove('hidden');
 }
