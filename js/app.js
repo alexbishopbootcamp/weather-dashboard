@@ -255,8 +255,21 @@ function parseWeatherData(rawWeatherData){
     tempMax = Math.max(tempMax, entry.main.temp_max);
     windMax = Math.max(windMax, entry.wind.speed);
     humidityMax = Math.max(humidityMax, entry.main.humidity);
-    icon = entry.weather[0].icon;
-    weather = entry.weather[0].main;
+
+    // Only update weather type and icon for midday
+    if(entry.dt_txt.split(' ')[1] === '12:00:00'){
+      console.log(entry);
+      icon = entry.weather[0].icon;
+      weather = entry.weather[0].main;
+    }
+  }
+
+  // Check if the last days data stopped before midday
+  if(!icon){
+    // Use the last entry's data
+    console.log("Using last entry's data");
+    icon = rawWeatherData.list[rawWeatherData.list.length - 1].weather[0].icon;
+    weather = rawWeatherData.list[rawWeatherData.list.length - 1].weather[0].main;
   }
 
   // Push the last day's max values which wouldn't have been pushed in the loop.
