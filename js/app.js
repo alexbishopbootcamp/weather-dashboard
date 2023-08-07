@@ -14,6 +14,9 @@ form.addEventListener('submit', async e => {
   const formData = new FormData(form);
   const text = formData.get('city');
 
+  // Bail if no city name was entered
+  if(!text){ return;}
+
   // Get list of matching cities from the API
   const cities = await getCities(text);
 
