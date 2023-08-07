@@ -103,3 +103,15 @@ forecast {
 .weather-data > * {
   margin-bottom: 12px;
 }
+
+#error-message {
+  display: none;
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px;
+}
+
+#city-selector {
+
+}
