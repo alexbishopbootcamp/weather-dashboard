@@ -244,7 +244,6 @@ function clearWeatherData(){
 
 // Parse todays weather data
 function parseTodaysWeatherData(rawWeatherData){
-  console.log(rawWeatherData);
   return {
     date: openWeatherDtToDate(rawWeatherData.dt, rawWeatherData.timezone),
     tempMax: rawWeatherData.main.temp_max,
@@ -329,6 +328,12 @@ function parseForecastData(rawWeatherData){
     if(timestamp.getHours() >= 10 && timestamp.getHours() <= 14){
       // note: The OpenWeatherMap API returns an icon based on day/night in GMT, not local time like it should.
       // To get around this, we will just edit the icon to always be day.
+      icon = entry.weather[0].icon.replace('n', 'd');
+      weather = entry.weather[0].main;
+    }
+
+    // Check for the edge case where first timestamp we receive is past midday
+    if(!icon && timestamp.getHours() > 14){
       icon = entry.weather[0].icon.replace('n', 'd');
       weather = entry.weather[0].main;
     }
