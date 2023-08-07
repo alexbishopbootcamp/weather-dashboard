@@ -231,6 +231,9 @@ function saveWeatherData(todaysData, weatherData, cityName){
 
     // Reload weather data
     loadWeatherData();
+  } else {
+    // Silently fail
+    return;
   }
 }
 
